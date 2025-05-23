@@ -14,23 +14,47 @@ class RegistrationSerializer(serializers.ModelSerializer):
             "password": {"write_only": True}
         }
 
-    def validate(self, data):
-        if data["password"] != data["repeated_password"]:
-            raise serializers.ValidationError("Passwords do not match.")
-        return data
+    def save(self):
+        pw = self.validated_data['password']
+        repeated_pw = self.validated_data['repeated_password']
+        
+        if pw != repeated_pw:
+            raise serializers.ValidationError({'error': 'password dont match'})
+        
+        account = User.objects.create_user(
+            email=self.validated_data['email'],
+            username=self.validated_data['username'],
+            password=pw
+        )
+        UserProfile.objects.create(
+            user=account,
+            username=account.username,
+            type=self.validated_data["type"]
+        )
+        return account
+    
+class BusinessProfileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user", "username", "first_name", "last_name", "file",
+            "location", "tel", "description", "working_hours", "type"
+        ]
 
-    def create(self, validated_data):
-        validated_data.pop("repeated_password")
-        user_type = validated_data.pop("type")
-        user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, username=user.username, type=user_type)
-        return user
+class CustomerProfileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user", "username", "first_name", "last_name", "file", "uploaded_at", "type"
+        ]
+        
+class UserProfileDetailSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+    created_at = serializers.DateTimeField(source="user.date_joined", read_only=True)
 
-    def to_representation(self, instance):
-        token, created = Token.objects.get_or_create(user=instance)
-        return {
-            "token": token.key,
-            "username": instance.username,
-            "email": instance.email,
-            "user_id": instance.id
-        }
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user", "username", "first_name", "last_name", "file", "location",
+            "tel", "description", "working_hours", "type", "email", "created_at"
+        ]
