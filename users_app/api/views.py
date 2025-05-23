@@ -4,9 +4,9 @@ from rest_framework.permissions import AllowAny
 from .serializers import RegistrationSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from rest_framework import generics
+from rest_framework import generics, status
 from users_app.models import UserProfile
-from .serializers import BusinessProfileListSerializer, CustomerProfileListSerializer, UserProfileDetailSerializer
+from .serializers import BusinessProfileListSerializer, CustomerProfileListSerializer, UserProfileDetailSerializer, FileUploadSerializer
 from rest_framework.permissions import IsAuthenticated
 from.permissions import IsOwnerOrReadOnly
 
@@ -62,3 +62,11 @@ class CustomerProfileListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type="customer")
     serializer_class = CustomerProfileListSerializer
     permission_classes = [IsAuthenticated]
+    
+class FileUploadView(APIView):
+    def post(self, request, format=None):
+        serializer = FileUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

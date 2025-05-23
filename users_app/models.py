@@ -6,7 +6,7 @@ class UserProfile(models.Model):
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
-    file = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
+    file = models.FileField(upload_to='uploads/', blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=100, blank=True)
     tel = models.CharField(max_length=20, blank=True)
