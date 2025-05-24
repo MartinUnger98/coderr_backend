@@ -12,13 +12,15 @@ from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from .pagination import LargeResultsSetPagination
+from .filters import OfferFilter
+from django.db.models import Min
 
 
 class OfferListCreateView(generics.ListCreateAPIView):
     queryset = Offer.objects.all().prefetch_related('details', 'user')
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    filterset_fields = ['user__id']
-    ordering_fields = ['updated_at', 'details__price']
+    filterset_class = OfferFilter
+    ordering_fields = ['updated_at', 'min_price']
     search_fields = ['title', 'description']
     pagination_class = LargeResultsSetPagination
 
@@ -28,15 +30,18 @@ class OfferListCreateView(generics.ListCreateAPIView):
         return OfferListSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = Offer.objects.annotate(
+            min_price=Min('details__price'),
+            min_delivery_time=Min('details__delivery_time_in_days')
+        ).prefetch_related('details', 'user')
 
         min_price = self.request.query_params.get('min_price')
         max_delivery = self.request.query_params.get('max_delivery_time')
 
         if min_price:
-            queryset = queryset.filter(details__price__gte=min_price)
+            queryset = queryset.filter(min_price__gte=min_price)
         if max_delivery:
-            queryset = queryset.filter(details__delivery_time_in_days__lte=max_delivery)
+            queryset = queryset.filter(min_delivery_time__lte=max_delivery)
 
         return queryset.distinct()
 

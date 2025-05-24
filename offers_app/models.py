@@ -9,14 +9,6 @@ class Offer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
-    def min_price(self):
-        return self.details.aggregate(models.Min('price'))['price__min']
-
-    @property
-    def min_delivery_time(self):
-        return self.details.aggregate(models.Min('delivery_time_in_days'))['delivery_time_in_days__min']
-
     def __str__(self):
         return self.title
 
