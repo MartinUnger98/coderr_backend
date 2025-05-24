@@ -1,5 +1,3 @@
-# offers_app/serializers.py
-
 from rest_framework import serializers
 from ..models import Offer, OfferDetail
 
@@ -8,10 +6,17 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
 
+class OfferDetailLinkSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+        extra_kwargs = {
+            'url': {'view_name': 'offer-details', 'lookup_field': 'id'}
+        }
 class OfferListSerializer(serializers.ModelSerializer):
     min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)
-    details = serializers.SerializerMethodField()
+    details = OfferDetailLinkSerializer(many=True, read_only=True)
     user_details = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,16 +26,13 @@ class OfferListSerializer(serializers.ModelSerializer):
             'details', 'min_price', 'min_delivery_time', 'user_details'
         ]
 
-    def get_details(self, obj):
-        return OfferDetailSerializer(obj.details.all(), many=True).data
-
     def get_user_details(self, obj):
         profile = getattr(obj.user, 'profile', None)
         return {
             'first_name': profile.first_name if profile else '',
             'last_name': profile.last_name if profile else '',
             'username': profile.username if profile else obj.user.username
-        }
+        }     
 
 
 class OfferCreateUpdateSerializer(serializers.ModelSerializer):
@@ -41,7 +43,10 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'description', 'details']
 
     def validate_details(self, value):
-        if len(value) < 3:
+        request = self.context.get('request', None)
+        is_patch = request and request.method == 'PATCH'
+
+        if not is_patch and len(value) < 3:
             raise serializers.ValidationError("Ein Angebot muss mindestens 3 Details enthalten.")
         return value
 

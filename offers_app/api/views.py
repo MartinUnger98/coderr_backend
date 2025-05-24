@@ -8,7 +8,7 @@ from .serializers import (
     OfferDetailSerializer,
     FileUploadSerializer
 )
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from .pagination import LargeResultsSetPagination
@@ -43,7 +43,7 @@ class OfferListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         if not user.is_authenticated:
-            raise PermissionDenied("Benutzer ist nicht authentifiziert.")
+            raise AuthenticationFailed("Benutzer ist nicht authentifiziert.")
         if user.profile.type != 'business':
             raise PermissionDenied("Nur Benutzer mit einem 'business'-Profil dürfen Angebote erstellen.")
         serializer.save(user=user)
@@ -52,6 +52,7 @@ class OfferListCreateView(generics.ListCreateAPIView):
 class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all().prefetch_related('details', 'user')
     lookup_field = 'id'
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method in ['PATCH', 'PUT']:
@@ -70,11 +71,11 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class OfferDetailRetrieveView(generics.RetrieveAPIView):
+class OfferDetails(generics.RetrieveAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
     lookup_field = 'id'
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     
 class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
