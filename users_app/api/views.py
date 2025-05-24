@@ -51,7 +51,9 @@ class UserProfileDetailView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         user_id = self.kwargs["pk"]
-        return UserProfile.objects.get(user__id=user_id)
+        obj = UserProfile.objects.get(user__id=user_id)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 class BusinessProfileListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type="business")
@@ -64,8 +66,10 @@ class CustomerProfileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
 class FileUploadView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request, format=None):
-        serializer = FileUploadSerializer(data=request.data)
+        profile = UserProfile.objects.get(user=request.user)
+        serializer = FileUploadSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
