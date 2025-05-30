@@ -57,3 +57,15 @@ class ProfileTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(any(p["type"] == "customer" for p in response.data))
+    
+    def test_update_email(self):
+        url = reverse('profile-detail', kwargs={"pk": self.customer_user.id})
+        new_email = "new@example.com"
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + self.customer_token.key
+        )
+        response = self.client.patch(url, {"email": new_email}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.customer_user.refresh_from_db()
+        self.assertEqual(self.customer_user.email, new_email)
+

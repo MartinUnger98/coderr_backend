@@ -99,7 +99,7 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
     Serializer for retrieving detailed user profile information,
     including email and account creation date.
     """
-    email = serializers.EmailField(source="user.email", read_only=True)
+    email = serializers.EmailField(source="user.email", required=False)
     created_at = serializers.DateTimeField(
         source="user.date_joined", read_only=True)
 
@@ -109,6 +109,20 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
             "user", "username", "first_name", "last_name", "file", "location",
             "tel", "description", "working_hours", "type", "email", "created_at"
         ]
+        
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        email = user_data.get('email')
+
+        if email:
+            instance.user.email = email
+            instance.user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
