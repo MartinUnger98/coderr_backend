@@ -17,21 +17,27 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def save(self):
         pw = self.validated_data['password']
         repeated_pw = self.validated_data['repeated_password']
-        
+
         if pw != repeated_pw:
             raise serializers.ValidationError({'error': 'password dont match'})
-        
-        account = User.objects.create_user(
+
+        account = self._create_user()
+        self._create_profile(account)
+        return account
+
+    def _create_user(self):
+        return User.objects.create_user(
             email=self.validated_data['email'],
             username=self.validated_data['username'],
-            password=pw
+            password=self.validated_data['password']
         )
+
+    def _create_profile(self, account):
         UserProfile.objects.create(
             user=account,
             username=account.username,
             type=self.validated_data["type"]
         )
-        return account
     
 class BusinessProfileListSerializer(serializers.ModelSerializer):
     class Meta:

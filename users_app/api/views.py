@@ -15,20 +15,19 @@ class RegistrationView(APIView):
 
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-        data = {}
         if serializer.is_valid():
-            saved_account = serializer.save()
-            token, created = Token.objects.get_or_create(user=saved_account)
-            data = {
-                'token': token.key,
-                'username': saved_account.username,
-                'email': saved_account.email,
-                'user_id': saved_account.id
-            }
-        else:
-            data=serializer.errors
-            
-        return Response(data)
+            return self._build_success_response(serializer)
+        return Response(serializer.errors)
+
+    def _build_success_response(self, serializer):
+        saved_account = serializer.save()
+        token, _ = Token.objects.get_or_create(user=saved_account)
+        return Response({
+            'token': token.key,
+            'username': saved_account.username,
+            'email': saved_account.email,
+            'user_id': saved_account.id
+        })
     
 class CustomLoginView(ObtainAuthToken):
     permission_classes = [AllowAny]

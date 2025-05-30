@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, status, filters
+from rest_framework import generics, status, filters
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from ..models import Offer, OfferDetail
@@ -30,11 +30,16 @@ class OfferListCreateView(generics.ListCreateAPIView):
         return OfferListSerializer
 
     def get_queryset(self):
-        queryset = Offer.objects.annotate(
+        queryset = self._annotate_queryset(Offer.objects.all())
+        return self._apply_filters(queryset)
+
+    def _annotate_queryset(self, queryset):
+        return queryset.annotate(
             min_price=Min('details__price'),
             min_delivery_time=Min('details__delivery_time_in_days')
         ).prefetch_related('details', 'user')
 
+    def _apply_filters(self, queryset):
         min_price = self.request.query_params.get('min_price')
         max_delivery = self.request.query_params.get('max_delivery_time')
 
@@ -43,7 +48,7 @@ class OfferListCreateView(generics.ListCreateAPIView):
         if max_delivery:
             queryset = queryset.filter(min_delivery_time__lte=max_delivery)
 
-        return queryset.distinct()
+        return queryset
 
     def perform_create(self, serializer):
         user = self.request.user

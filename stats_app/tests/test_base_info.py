@@ -6,18 +6,23 @@ from reviews_app.models import Review
 
 class TestBaseInfoEndpoint(APITestCase):
     def setUp(self):
-        self.business_user = User.objects.create_user(username='biz_user', password='1234')
-        self.business_profile = UserProfile.objects.create(user=self.business_user, username='biz_user', type='business')
+        self.business_user = self._create_user("biz_user", "business")
+        self.customer_user = self._create_user("cust_user", "customer")
+        self.customer_user2 = self._create_user("cust_user2", "customer")
 
-        self.customer_user = User.objects.create_user(username='cust_user', password='1234')
-        self.customer_profile = UserProfile.objects.create(user=self.customer_user, username='cust_user', type='customer')
+        self._create_offers(self.business_user, count=3)
+        self._create_reviews()
 
-        self.customer_user2 = User.objects.create_user(username='cust_user2', password='1234')
-        self.customer_profile2 = UserProfile.objects.create(user=self.customer_user2, username='cust_user2', type='customer')
+    def _create_user(self, username, user_type):
+        user = User.objects.create_user(username=username, password="1234")
+        UserProfile.objects.create(user=user, username=username, type=user_type)
+        return user
 
-        for i in range(3):
-            Offer.objects.create(user=self.business_user, title=f"Angebot {i}", description="Testbeschreibung")
+    def _create_offers(self, user, count):
+        for i in range(count):
+            Offer.objects.create(user=user, title=f"Angebot {i}", description="Testbeschreibung")
 
+    def _create_reviews(self):
         Review.objects.create(
             business_user=self.business_user,
             reviewer=self.customer_user,
@@ -28,7 +33,7 @@ class TestBaseInfoEndpoint(APITestCase):
             business_user=self.business_user,
             reviewer=self.customer_user2,
             rating=4,
-            description="Gut!"
+            description="Gut"
         )
 
     def test_base_info_data(self):

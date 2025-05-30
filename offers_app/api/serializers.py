@@ -67,16 +67,16 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         if details_data:
-            for detail_data in details_data:
-                offer_type = detail_data.get('offer_type')
-                detail_obj = instance.details.filter(offer_type=offer_type).first()
-                if detail_obj:
-                    for key, val in detail_data.items():
-                        setattr(detail_obj, key, val)
-                    detail_obj.save()
-                else:
-                    OfferDetail.objects.create(offer=instance, **detail_data)
+            self._update_details(instance, details_data)
         return instance
+
+    def _update_details(self, instance, details_data):
+        for detail_data in details_data:
+            offer_type = detail_data.get('offer_type')
+            detail_obj = instance.details.filter(offer_type=offer_type).first()
+            if detail_obj:
+                for key, val in detail_data.items():
+                    setattr(detail_obj, key, val)
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
