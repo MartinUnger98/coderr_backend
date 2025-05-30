@@ -8,7 +8,20 @@ from django.db.models import Avg
 
 
 class BaseInfoView(APIView):
+    """
+    API view to retrieve basic platform statistics.
+
+    Returns the total number of reviews, the average review rating,
+    the total number of business profiles, and the total number of offers.
+    """
+
     def get(self, request):
+        """
+        Handle GET request to return summary statistics.
+
+        Returns:
+            Response: A JSON response containing counts and averages.
+        """
         review_count = Review.objects.count()
         average_rating = Review.objects.aggregate(
             avg_rating=Avg('rating'))['avg_rating'] or 0

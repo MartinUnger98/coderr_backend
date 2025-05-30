@@ -5,6 +5,12 @@ from rest_framework.authtoken.models import Token
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+
+    Handles user creation along with the associated user profile.
+    Ensures password confirmation and assigns profile type.
+    """
     repeated_password = serializers.CharField(write_only=True)
     type = serializers.ChoiceField(
         choices=[("customer", "Customer"), ("business", "Business")])
@@ -17,6 +23,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def save(self):
+        """
+        Save the new user and their profile.
+
+        Raises:
+            ValidationError: If passwords do not match.
+
+        Returns:
+            User: The created user instance.
+        """
         pw = self.validated_data['password']
         repeated_pw = self.validated_data['repeated_password']
 
@@ -28,6 +43,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
     def _create_user(self):
+        """
+        Create the User instance.
+
+        Returns:
+            User: The created user.
+        """
         return User.objects.create_user(
             email=self.validated_data['email'],
             username=self.validated_data['username'],
@@ -35,6 +56,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
     def _create_profile(self, account):
+        """
+        Create a UserProfile for the given user.
+
+        Args:
+            account (User): The user to associate with the profile.
+        """
         UserProfile.objects.create(
             user=account,
             username=account.username,
@@ -43,6 +70,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing business user profiles.
+    """
+
     class Meta:
         model = UserProfile
         fields = [
@@ -52,6 +83,10 @@ class BusinessProfileListSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing customer user profiles.
+    """
+
     class Meta:
         model = UserProfile
         fields = [
@@ -60,6 +95,10 @@ class CustomerProfileListSerializer(serializers.ModelSerializer):
 
 
 class UserProfileDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for retrieving detailed user profile information,
+    including email and account creation date.
+    """
     email = serializers.EmailField(source="user.email", read_only=True)
     created_at = serializers.DateTimeField(
         source="user.date_joined", read_only=True)
@@ -73,6 +112,10 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for uploading a profile file.
+    """
+
     class Meta:
         model = UserProfile
         fields = ['file', 'uploaded_at']

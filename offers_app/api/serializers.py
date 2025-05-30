@@ -3,6 +3,11 @@ from ..models import Offer, OfferDetail
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the OfferDetail model.
+    Used to handle full detail data of individual offer components.
+    """
+
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions',
@@ -10,6 +15,11 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferDetailLinkSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Hyperlinked serializer for OfferDetail.
+    Provides URL-based referencing to detail objects.
+    """
+
     class Meta:
         model = OfferDetail
         fields = ['id', 'url']
@@ -19,6 +29,10 @@ class OfferDetailLinkSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class OfferListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing offers with minimal detail and user summary.
+    Includes calculated fields for minimum price and delivery time.
+    """
     min_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)
@@ -33,6 +47,9 @@ class OfferListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_details(self, obj):
+        """
+        Returns selected fields of the user profile associated with the offer.
+        """
         profile = getattr(obj.user, 'profile', None)
         return {
             'first_name': profile.first_name if profile else '',
@@ -42,6 +59,10 @@ class OfferListSerializer(serializers.ModelSerializer):
 
 
 class OfferCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating and updating Offer instances.
+    Handles nested creation of OfferDetail items.
+    """
     details = OfferDetailSerializer(many=True)
 
     class Meta:
@@ -49,6 +70,10 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'description', 'details']
 
     def validate_details(self, value):
+        """
+        Ensures that at least three details are provided on offer creation.
+        Skipped on PATCH (partial update).
+        """
         request = self.context.get('request', None)
         is_patch = request and request.method == 'PATCH'
 
@@ -58,6 +83,10 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        """
+        Creates an offer with nested offer details.
+        The user is retrieved from the request context.
+        """
         details_data = validated_data.pop('details')
         validated_data.pop('user', None)
         user = self.context['request'].user
@@ -68,6 +97,9 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
+        """
+        Updates an offer and optionally its related details.
+        """
         details_data = validated_data.pop('details', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -77,6 +109,10 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def _update_details(self, instance, details_data):
+        """
+        Internal helper to update offer details based on 'offer_type'.
+        Matches existing details and updates fields accordingly.
+        """
         for detail_data in details_data:
             offer_type = detail_data.get('offer_type')
             detail_obj = instance.details.filter(offer_type=offer_type).first()
@@ -86,6 +122,11 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for uploading or modifying the image of an offer.
+    Also includes timestamps.
+    """
+
     class Meta:
         model = Offer
         fields = ['image', 'created_at', 'updated_at']
