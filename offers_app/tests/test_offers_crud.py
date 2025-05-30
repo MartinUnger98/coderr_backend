@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from offers_app.models import Offer, OfferDetail
 from users_app.models import UserProfile
 from rest_framework.authtoken.models import Token
+from django.shortcuts import get_object_or_404
+
 
 
 class OfferCRUDTests(APITestCase):
@@ -72,28 +74,28 @@ class OfferCRUDTests(APITestCase):
         self.assertEqual(detail_res.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_res.data['id'], offer_id)
 
-    def test_patch_offer(self):
-        res = self.client.post(
-            reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
-        offer_id = res.data['id']
-        url = reverse('offer-detail-update-delete', kwargs={'id': offer_id})
+    def test_patch_offer_updates_offer_detail(self):
+        res = self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        url = reverse('offer-detail-update-delete', kwargs={'id': res.data['id']})
         patch_data = {
             "title": "Updated Grafikdesign-Paket",
-            "details": [
-                {
-                    "title": "Basic Design Updated",
-                    "revisions": 3,
-                    "delivery_time_in_days": 6,
-                    "price": 120,
-                    "features": ["Logo Design", "Flyer"],
-                    "offer_type": "basic"
-                }
-            ]
+            "details": [{
+                "title": "Basic Design Updated",
+                "revisions": 3,
+                "delivery_time_in_days": 6,
+                "price": 120,
+                "features": ["Logo Design", "Flyer"],
+                "offer_type": "basic"
+            }]
         }
-        patch_res = self.client.patch(
-            url, patch_data, format='json', **self.auth_header)
-        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
-        self.assertEqual(patch_res.data['title'], "Updated Grafikdesign-Paket")
+        self.client.patch(url, patch_data, format='json', **self.auth_header)
+        detail = OfferDetail.objects.get(offer__id=res.data['id'], offer_type='basic')
+        self.assertEqual(detail.title, "Basic Design Updated")
+        self.assertEqual(detail.revisions, 3)
+        self.assertEqual(detail.delivery_time_in_days, 6)
+        self.assertEqual(float(detail.price), 120.00)
+        self.assertEqual(detail.features, ["Logo Design", "Flyer"])
+
 
     def test_delete_offer(self):
         res = self.client.post(

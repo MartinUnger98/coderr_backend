@@ -6,7 +6,8 @@ from .serializers import (
     OfferListSerializer,
     OfferCreateUpdateSerializer,
     OfferDetailSerializer,
-    FileUploadSerializer
+    FileUploadSerializer,
+    OfferRetrieveSerializer
 )
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
@@ -85,18 +86,30 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     API view to retrieve, update, or delete a single offer.
     Only the offer creator can update or delete the offer.
+    Retrieves additional information such as min price and delivery time.
     """
-    queryset = Offer.objects.all().prefetch_related('details', 'user')
     lookup_field = 'id'
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """
+        Annotate offers with minimum price and delivery time values.
+        Used for the retrieve view to include calculated fields.
+        """
+        return Offer.objects.annotate(
+            min_price=Min('details__price'),
+            min_delivery_time=Min('details__delivery_time_in_days')
+        ).prefetch_related('details', 'user')
+
     def get_serializer_class(self):
         """
-        Return the serializer class depending on the request method.
+        Return the appropriate serializer class based on the request method.
         """
         if self.request.method in ['PATCH', 'PUT']:
             return OfferCreateUpdateSerializer
-        return OfferListSerializer
+        elif self.request.method == 'GET':
+            return OfferRetrieveSerializer
+        return OfferRetrieveSerializer
 
     def check_object_permissions(self, request, obj):
         """
