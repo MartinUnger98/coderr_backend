@@ -123,7 +123,8 @@ class FileUploadView(APIView):
         Handles POST request to upload a file to the user's profile.
         """
         profile = UserProfile.objects.get(user=request.user)
-        serializer = FileUploadSerializer(profile, data=request.data, partial=True)
+        serializer = FileUploadSerializer(
+            profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

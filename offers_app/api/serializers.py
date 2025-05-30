@@ -107,7 +107,7 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         if details_data:
             self._update_details(instance, details_data)
         return instance
-                    
+
     def _update_details(self, instance, details_data):
         """
         Internal helper to update offer details based on 'offer_type'.
@@ -126,7 +126,6 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
                 detail_obj.save()
 
 
-
 class FileUploadSerializer(serializers.ModelSerializer):
     """
     Serializer for uploading or modifying the image of an offer.
@@ -136,13 +135,15 @@ class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
         fields = ['image', 'created_at', 'updated_at']
-        
+
+
 class OfferRetrieveSerializer(serializers.ModelSerializer):
     """
     Serializer for retrieving a single offer with price and delivery time info.
     Excludes user profile summary.
     """
-    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    min_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)
     details = OfferDetailLinkSerializer(many=True, read_only=True)
 

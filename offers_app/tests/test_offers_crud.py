@@ -8,7 +8,6 @@ from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
 
-
 class OfferCRUDTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -75,8 +74,10 @@ class OfferCRUDTests(APITestCase):
         self.assertEqual(detail_res.data['id'], offer_id)
 
     def test_patch_offer_updates_offer_detail(self):
-        res = self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
-        url = reverse('offer-detail-update-delete', kwargs={'id': res.data['id']})
+        res = self.client.post(
+            reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        url = reverse('offer-detail-update-delete',
+                      kwargs={'id': res.data['id']})
         patch_data = {
             "title": "Updated Grafikdesign-Paket",
             "details": [{
@@ -89,13 +90,13 @@ class OfferCRUDTests(APITestCase):
             }]
         }
         self.client.patch(url, patch_data, format='json', **self.auth_header)
-        detail = OfferDetail.objects.get(offer__id=res.data['id'], offer_type='basic')
+        detail = OfferDetail.objects.get(
+            offer__id=res.data['id'], offer_type='basic')
         self.assertEqual(detail.title, "Basic Design Updated")
         self.assertEqual(detail.revisions, 3)
         self.assertEqual(detail.delivery_time_in_days, 6)
         self.assertEqual(float(detail.price), 120.00)
         self.assertEqual(detail.features, ["Logo Design", "Flyer"])
-
 
     def test_delete_offer(self):
         res = self.client.post(

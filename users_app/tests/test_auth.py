@@ -47,9 +47,10 @@ class AuthTests(APITestCase):
         response = self.client.post(
             self.login_url, {"username": "fakeuser", "password": "wrongpass"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    
+
     def test_registration_with_existing_username(self):
-        User.objects.create_user(username="existing", email="e@x.com", password="pass")
+        User.objects.create_user(
+            username="existing", email="e@x.com", password="pass")
         data = {
             "username": "existing",
             "email": "new@x.com",
@@ -63,9 +64,10 @@ class AuthTests(APITestCase):
             response.data["username"][0],
             "Ein Benutzer mit diesem Benutzernamen existiert bereits."
         )
-        
+
     def test_registration_with_existing_email(self):
-        User.objects.create_user(username="uniqueuser", email="duplicate@example.com", password="pass")
+        User.objects.create_user(
+            username="uniqueuser", email="duplicate@example.com", password="pass")
         data = {
             "username": "newuser",
             "email": "duplicate@example.com",

@@ -55,9 +55,10 @@ class TestOrderCRUD(APITestCase):
         response = self.client.post('/api/orders/', {}, **self.customer_auth)
         self.assertEqual(response.status_code, 400)
         self.assertIn('offer_detail_id', response.data)
-        
+
     def test_create_order_invalid_offer_detail_id_type(self):
-        response = self.client.post('/api/orders/', {'offer_detail_id': 'abc'}, **self.customer_auth)
+        response = self.client.post(
+            '/api/orders/', {'offer_detail_id': 'abc'}, **self.customer_auth)
         self.assertEqual(response.status_code, 400)
         self.assertIn('offer_detail_id', response.data)
 

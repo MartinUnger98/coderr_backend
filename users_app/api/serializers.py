@@ -39,7 +39,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         Ensure the username is unique.
         """
         if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Ein Benutzer mit diesem Benutzernamen existiert bereits.")
+            raise serializers.ValidationError(
+                "Ein Benutzer mit diesem Benutzernamen existiert bereits.")
         return value
 
     def validate_email(self, value):
@@ -47,7 +48,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         Ensure the email is unique.
         """
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.")
+            raise serializers.ValidationError(
+                "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.")
         return value
 
     def validate(self, data):
@@ -55,7 +57,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         Ensure the password and repeated password match.
         """
         if data['password'] != data['repeated_password']:
-            raise serializers.ValidationError({'password': 'Die Passwörter stimmen nicht überein.'})
+            raise serializers.ValidationError(
+                {'password': 'Die Passwörter stimmen nicht überein.'})
         return data
 
     def save(self):
@@ -115,7 +118,7 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
             "user", "username", "first_name", "last_name", "file", "location",
             "tel", "description", "working_hours", "type", "email", "created_at"
         ]
-        
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
         email = user_data.get('email')
