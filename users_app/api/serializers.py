@@ -4,16 +4,28 @@ from users_app.models import UserProfile
 from rest_framework.authtoken.models import Token
 
 
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from users_app.models import UserProfile
+
+
 class RegistrationSerializer(serializers.ModelSerializer):
     """
     Serializer for user registration.
-
-    Handles user creation along with the associated user profile.
-    Ensures password confirmation and assigns profile type.
+    Validates and creates a new User along with a related UserProfile.
     """
     repeated_password = serializers.CharField(write_only=True)
     type = serializers.ChoiceField(
         choices=[("customer", "Customer"), ("business", "Business")])
+
+    username = serializers.CharField(
+        required=True,
+        write_only=False
+    )
+    email = serializers.EmailField(
+        required=True,
+        write_only=False
+    )
 
     class Meta:
         model = User
@@ -22,51 +34,45 @@ class RegistrationSerializer(serializers.ModelSerializer):
             "password": {"write_only": True}
         }
 
+    def validate_username(self, value):
+        """
+        Ensure the username is unique.
+        """
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Ein Benutzer mit diesem Benutzernamen existiert bereits.")
+        return value
+
+    def validate_email(self, value):
+        """
+        Ensure the email is unique.
+        """
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.")
+        return value
+
+    def validate(self, data):
+        """
+        Ensure the password and repeated password match.
+        """
+        if data['password'] != data['repeated_password']:
+            raise serializers.ValidationError({'password': 'Die Passwörter stimmen nicht überein.'})
+        return data
+
     def save(self):
         """
-        Save the new user and their profile.
-
-        Raises:
-            ValidationError: If passwords do not match.
-
-        Returns:
-            User: The created user instance.
+        Create the User and associated UserProfile instance.
         """
-        pw = self.validated_data['password']
-        repeated_pw = self.validated_data['repeated_password']
-
-        if pw != repeated_pw:
-            raise serializers.ValidationError({'error': 'password dont match'})
-
-        account = self._create_user()
-        self._create_profile(account)
-        return account
-
-    def _create_user(self):
-        """
-        Create the User instance.
-
-        Returns:
-            User: The created user.
-        """
-        return User.objects.create_user(
-            email=self.validated_data['email'],
+        user = User.objects.create_user(
             username=self.validated_data['username'],
+            email=self.validated_data['email'],
             password=self.validated_data['password']
         )
-
-    def _create_profile(self, account):
-        """
-        Create a UserProfile for the given user.
-
-        Args:
-            account (User): The user to associate with the profile.
-        """
         UserProfile.objects.create(
-            user=account,
-            username=account.username,
+            user=user,
+            username=user.username,
             type=self.validated_data["type"]
         )
+        return user
 
 
 class BusinessProfileListSerializer(serializers.ModelSerializer):
