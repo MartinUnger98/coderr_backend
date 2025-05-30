@@ -7,15 +7,21 @@ from orders_app.models import Order
 
 class TestOrderCounts(APITestCase):
     def setUp(self):
-        self.business_user = User.objects.create_user(username='biz_count', password='1234')
-        self.business_profile = UserProfile.objects.create(user=self.business_user, username='biz_count', type='business')
+        self.business_user = User.objects.create_user(
+            username='biz_count', password='1234')
+        self.business_profile = UserProfile.objects.create(
+            user=self.business_user, username='biz_count', type='business')
         self.business_token = Token.objects.create(user=self.business_user)
-        self.business_auth = {'HTTP_AUTHORIZATION': f'Token {self.business_token.key}'}
+        self.business_auth = {
+            'HTTP_AUTHORIZATION': f'Token {self.business_token.key}'}
 
-        self.customer_user = User.objects.create_user(username='cust_count', password='1234')
-        self.customer_profile = UserProfile.objects.create(user=self.customer_user, username='cust_count', type='customer')
+        self.customer_user = User.objects.create_user(
+            username='cust_count', password='1234')
+        self.customer_profile = UserProfile.objects.create(
+            user=self.customer_user, username='cust_count', type='customer')
         self.customer_token = Token.objects.create(user=self.customer_user)
-        self.customer_auth = {'HTTP_AUTHORIZATION': f'Token {self.customer_token.key}'}
+        self.customer_auth = {
+            'HTTP_AUTHORIZATION': f'Token {self.customer_token.key}'}
 
         Order.objects.create(
             customer_user=self.customer_user,

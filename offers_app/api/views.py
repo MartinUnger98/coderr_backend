@@ -18,7 +18,8 @@ from django.db.models import Min
 
 class OfferListCreateView(generics.ListCreateAPIView):
     queryset = Offer.objects.all().prefetch_related('details', 'user')
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend,
+                       filters.OrderingFilter, filters.SearchFilter]
     filterset_class = OfferFilter
     ordering_fields = ['updated_at', 'min_price']
     search_fields = ['title', 'description']
@@ -55,7 +56,8 @@ class OfferListCreateView(generics.ListCreateAPIView):
         if not user.is_authenticated:
             raise AuthenticationFailed("Benutzer ist nicht authentifiziert.")
         if user.profile.type != 'business':
-            raise PermissionDenied("Nur Benutzer mit einem 'business'-Profil dürfen Angebote erstellen.")
+            raise PermissionDenied(
+                "Nur Benutzer mit einem 'business'-Profil dürfen Angebote erstellen.")
         serializer.save(user=user)
 
 
@@ -72,7 +74,8 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     def check_object_permissions(self, request, obj):
         if request.method in ['PATCH', 'DELETE']:
             if obj.user != request.user:
-                raise PermissionDenied("Nur der Ersteller darf dieses Angebot ändern oder löschen.")
+                raise PermissionDenied(
+                    "Nur der Ersteller darf dieses Angebot ändern oder löschen.")
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -86,12 +89,15 @@ class OfferDetails(generics.RetrieveAPIView):
     serializer_class = OfferDetailSerializer
     lookup_field = 'id'
     permission_classes = [IsAuthenticated]
-    
+
+
 class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request, format=None):
         offer = Offer.objects.get(user=request.user)
-        serializer = FileUploadSerializer(offer, data=request.data, partial=True)
+        serializer = FileUploadSerializer(
+            offer, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

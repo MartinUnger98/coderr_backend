@@ -8,7 +8,8 @@ from .views import (
 
 urlpatterns = [
     path('offers/', OfferListCreateView.as_view(), name='offers-list'),
-    path('offers/<int:id>/', OfferRetrieveUpdateDestroyView.as_view(), name='offer-detail-update-delete'),
+    path('offers/<int:id>/', OfferRetrieveUpdateDestroyView.as_view(),
+         name='offer-detail-update-delete'),
     path('offerdetails/<int:id>/', OfferDetails.as_view(), name='offer-details'),
     path('upload/', FileUploadView.as_view(), name='file-upload'),
 ]

@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-
 class ReviewListCreateView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -26,19 +25,22 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         business_user = serializer.validated_data['business_user']
 
         if Review.objects.filter(business_user=business_user, reviewer=user).exists():
-            raise PermissionDenied("Du darfst nur eine Bewertung pro Geschäftsbenutzer abgeben.")
+            raise PermissionDenied(
+                "Du darfst nur eine Bewertung pro Geschäftsbenutzer abgeben.")
 
         serializer.save(reviewer=user)
 
+
 class ReviewRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Review.objects.all() 
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'pk'
 
     def check_object_permissions(self, request, obj):
         if request.method in ['PATCH', 'DELETE'] and obj.reviewer != request.user:
-            raise PermissionDenied("Nur der Ersteller darf diese Bewertung bearbeiten oder löschen.")
+            raise PermissionDenied(
+                "Nur der Ersteller darf diese Bewertung bearbeiten oder löschen.")
 
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()

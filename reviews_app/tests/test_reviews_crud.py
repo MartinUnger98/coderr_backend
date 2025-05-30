@@ -4,13 +4,18 @@ from django.contrib.auth.models import User
 from users_app.models import UserProfile
 from reviews_app.models import Review
 
+
 class TestReviewCRUD(APITestCase):
     def setUp(self):
-        self.business_user = User.objects.create_user(username='biz_crud', password='1234')
-        self.business_profile = UserProfile.objects.create(user=self.business_user, username='biz_crud', type='business')
+        self.business_user = User.objects.create_user(
+            username='biz_crud', password='1234')
+        self.business_profile = UserProfile.objects.create(
+            user=self.business_user, username='biz_crud', type='business')
 
-        self.customer_user = User.objects.create_user(username='cust_crud', password='1234')
-        self.customer_profile = UserProfile.objects.create(user=self.customer_user, username='cust_crud', type='customer')
+        self.customer_user = User.objects.create_user(
+            username='cust_crud', password='1234')
+        self.customer_profile = UserProfile.objects.create(
+            user=self.customer_user, username='cust_crud', type='customer')
 
         self.token = Token.objects.create(user=self.customer_user)
         self.auth = {'HTTP_AUTHORIZATION': f'Token {self.token.key}'}

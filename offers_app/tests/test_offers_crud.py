@@ -6,10 +6,13 @@ from offers_app.models import Offer, OfferDetail
 from users_app.models import UserProfile
 from rest_framework.authtoken.models import Token
 
+
 class OfferCRUDTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='biz', password='testpass')
-        self.profile = UserProfile.objects.create(user=self.user, username='biz', type='business')
+        self.user = User.objects.create_user(
+            username='biz', password='testpass')
+        self.profile = UserProfile.objects.create(
+            user=self.user, username='biz', type='business')
         self.token = Token.objects.create(user=self.user)
         self.auth_header = {'HTTP_AUTHORIZATION': f'Token {self.token.key}'}
 
@@ -47,19 +50,22 @@ class OfferCRUDTests(APITestCase):
 
     def test_create_offer(self):
         url = reverse('offers-list')
-        res = self.client.post(url, self.offer_payload, format='json', **self.auth_header)
+        res = self.client.post(url, self.offer_payload,
+                               format='json', **self.auth_header)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Offer.objects.count(), 1)
         self.assertEqual(OfferDetail.objects.count(), 3)
 
     def test_get_offers(self):
-        self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        self.client.post(reverse('offers-list'),
+                         self.offer_payload, format='json', **self.auth_header)
         res = self.client.get(reverse('offers-list'), **self.auth_header)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(res.data['results']), 1)
 
     def test_get_offer_detail(self):
-        res = self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        res = self.client.post(
+            reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
         offer_id = res.data['id']
         url = reverse('offer-detail-update-delete', kwargs={'id': offer_id})
         detail_res = self.client.get(url, **self.auth_header)
@@ -67,7 +73,8 @@ class OfferCRUDTests(APITestCase):
         self.assertEqual(detail_res.data['id'], offer_id)
 
     def test_patch_offer(self):
-        res = self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        res = self.client.post(
+            reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
         offer_id = res.data['id']
         url = reverse('offer-detail-update-delete', kwargs={'id': offer_id})
         patch_data = {
@@ -83,12 +90,14 @@ class OfferCRUDTests(APITestCase):
                 }
             ]
         }
-        patch_res = self.client.patch(url, patch_data, format='json', **self.auth_header)
+        patch_res = self.client.patch(
+            url, patch_data, format='json', **self.auth_header)
         self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
         self.assertEqual(patch_res.data['title'], "Updated Grafikdesign-Paket")
 
     def test_delete_offer(self):
-        res = self.client.post(reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
+        res = self.client.post(
+            reverse('offers-list'), self.offer_payload, format='json', **self.auth_header)
         offer_id = res.data['id']
         url = reverse('offer-detail-update-delete', kwargs={'id': offer_id})
         del_res = self.client.delete(url, **self.auth_header)

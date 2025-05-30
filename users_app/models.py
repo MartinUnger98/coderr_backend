@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile')
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
@@ -12,7 +14,7 @@ class UserProfile(models.Model):
     tel = models.CharField(max_length=20, blank=True)
     description = models.TextField(blank=True)
     working_hours = models.CharField(max_length=50, blank=True)
-    
+
     USER_TYPE_CHOICES = (
         ("customer", "Customer"),
         ("business", "Business"),

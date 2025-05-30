@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 from users_app.models import UserProfile
 from rest_framework.authtoken.models import Token
 
+
 class RegistrationSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True)
-    type = serializers.ChoiceField(choices=[("customer", "Customer"), ("business", "Business")])
+    type = serializers.ChoiceField(
+        choices=[("customer", "Customer"), ("business", "Business")])
 
     class Meta:
         model = User
@@ -38,7 +40,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             username=account.username,
             type=self.validated_data["type"]
         )
-    
+
+
 class BusinessProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -47,16 +50,19 @@ class BusinessProfileListSerializer(serializers.ModelSerializer):
             "location", "tel", "description", "working_hours", "type"
         ]
 
+
 class CustomerProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = [
             "user", "username", "first_name", "last_name", "file", "uploaded_at", "type"
         ]
-        
+
+
 class UserProfileDetailSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
-    created_at = serializers.DateTimeField(source="user.date_joined", read_only=True)
+    created_at = serializers.DateTimeField(
+        source="user.date_joined", read_only=True)
 
     class Meta:
         model = UserProfile
@@ -64,7 +70,8 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
             "user", "username", "first_name", "last_name", "file", "location",
             "tel", "description", "working_hours", "type", "email", "created_at"
         ]
-        
+
+
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile

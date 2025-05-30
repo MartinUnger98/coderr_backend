@@ -6,14 +6,18 @@ from offers_app.models import Offer, OfferDetail
 from users_app.models import UserProfile
 from rest_framework.authtoken.models import Token
 
+
 class OfferDetailAPITests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='biz', password='testpass')
-        UserProfile.objects.create(user=self.user, username='biz', type='business')
+        self.user = User.objects.create_user(
+            username='biz', password='testpass')
+        UserProfile.objects.create(
+            user=self.user, username='biz', type='business')
         self.token = Token.objects.create(user=self.user)
         self.auth = {'HTTP_AUTHORIZATION': f'Token {self.token.key}'}
 
-        self.offer = Offer.objects.create(user=self.user, title='Flyer Design', description='Top Design')
+        self.offer = Offer.objects.create(
+            user=self.user, title='Flyer Design', description='Top Design')
         self.detail = OfferDetail.objects.create(
             offer=self.offer,
             title='Premium',

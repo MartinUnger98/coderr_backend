@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 
+
 class OrderListCreateView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
@@ -17,7 +18,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         return Order.objects.filter(Q(customer_user=user) | Q(business_user=user))
-    
+
     def create(self, request, *args, **kwargs):
         user = request.user
         if not self._is_customer(user):
@@ -37,7 +38,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         if not offer_detail_id:
             raise ValidationError({'detail': 'offer_detail_id fehlt.'})
         return get_object_or_404(OfferDetail, id=offer_detail_id)
-    
+
     def _create_order_from_offer(self, user, offer_detail):
         return Order.objects.create(
             customer_user=user,
@@ -50,6 +51,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
             offer_type=offer_detail.offer_type
         )
 
+
 class OrderStatusUpdateView(generics.UpdateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -60,7 +62,7 @@ class OrderStatusUpdateView(generics.UpdateAPIView):
         user = self.request.user
         if user.profile.type != 'business':
             return Response({'detail': 'Nur Geschäftsnutzer dürfen den Status ändern.'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         status_value = request.data.get('status')
         if status_value not in dict(Order.STATUS_CHOICES):
             return Response({'detail': 'Ungültiger Status.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -70,22 +72,27 @@ class OrderStatusUpdateView(generics.UpdateAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+
 class OrderDeleteView(generics.DestroyAPIView):
     queryset = Order.objects.all()
     permission_classes = [IsAdminUser]
+
 
 class InProgressOrderCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
         get_object_or_404(User, id=business_user_id, profile__type='business')
-        count = Order.objects.filter(business_user_id=business_user_id, status='in_progress').count()
+        count = Order.objects.filter(
+            business_user_id=business_user_id, status='in_progress').count()
         return Response({'order_count': count})
+
 
 class CompletedOrderCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
         get_object_or_404(User, id=business_user_id, profile__type='business')
-        count = Order.objects.filter(business_user_id=business_user_id, status='completed').count()
+        count = Order.objects.filter(
+            business_user_id=business_user_id, status='completed').count()
         return Response({'completed_order_count': count})

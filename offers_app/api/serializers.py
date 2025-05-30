@@ -1,10 +1,13 @@
 from rest_framework import serializers
 from ..models import Offer, OfferDetail
 
+
 class OfferDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferDetail
-        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        fields = ['id', 'title', 'revisions',
+                  'delivery_time_in_days', 'price', 'features', 'offer_type']
+
 
 class OfferDetailLinkSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -13,8 +16,11 @@ class OfferDetailLinkSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'offer-details', 'lookup_field': 'id'}
         }
+
+
 class OfferListSerializer(serializers.ModelSerializer):
-    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    min_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)
     details = OfferDetailLinkSerializer(many=True, read_only=True)
     user_details = serializers.SerializerMethodField()
@@ -32,7 +38,7 @@ class OfferListSerializer(serializers.ModelSerializer):
             'first_name': profile.first_name if profile else '',
             'last_name': profile.last_name if profile else '',
             'username': profile.username if profile else obj.user.username
-        }     
+        }
 
 
 class OfferCreateUpdateSerializer(serializers.ModelSerializer):
@@ -47,7 +53,8 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         is_patch = request and request.method == 'PATCH'
 
         if not is_patch and len(value) < 3:
-            raise serializers.ValidationError("Ein Angebot muss mindestens 3 Details enthalten.")
+            raise serializers.ValidationError(
+                "Ein Angebot muss mindestens 3 Details enthalten.")
         return value
 
     def create(self, validated_data):
@@ -59,7 +66,6 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
             OfferDetail.objects.create(offer=offer, **detail)
 
         return offer
-
 
     def update(self, instance, validated_data):
         details_data = validated_data.pop('details', None)
@@ -77,6 +83,7 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
             if detail_obj:
                 for key, val in detail_data.items():
                     setattr(detail_obj, key, val)
+
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
