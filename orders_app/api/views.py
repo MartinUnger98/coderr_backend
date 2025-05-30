@@ -8,6 +8,7 @@ from offers_app.models import OfferDetail
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.models import User
+from rest_framework.exceptions import ValidationError
 
 class OrderListCreateView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
@@ -34,7 +35,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
     def _get_offer_detail_or_error(self, request):
         offer_detail_id = request.data.get('offer_detail_id')
         if not offer_detail_id:
-            raise Response({'detail': 'offer_detail_id fehlt.'})
+            raise ValidationError({'detail': 'offer_detail_id fehlt.'})
         return get_object_or_404(OfferDetail, id=offer_detail_id)
     
     def _create_order_from_offer(self, user, offer_detail):
