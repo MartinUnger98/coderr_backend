@@ -54,12 +54,17 @@ class TestOrderCRUD(APITestCase):
     def test_create_order_missing_offer_detail_id(self):
         response = self.client.post('/api/orders/', {}, **self.customer_auth)
         self.assertEqual(response.status_code, 400)
-        self.assertIn('offer_detail_id', response.data['detail'])
+        self.assertIn('offer_detail_id', response.data)
+        
+    def test_create_order_invalid_offer_detail_id_type(self):
+        response = self.client.post('/api/orders/', {'offer_detail_id': 'abc'}, **self.customer_auth)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('offer_detail_id', response.data)
 
-    def test_create_order_invalid_offer_detail_id(self):
+    def test_create_order_nonexistent_offer_detail_id(self):
         response = self.client.post(
             '/api/orders/', {'offer_detail_id': 999}, **self.customer_auth)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
     def test_admin_can_delete_order(self):
         response = self.client.post(

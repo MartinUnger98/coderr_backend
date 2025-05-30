@@ -53,8 +53,17 @@ class OrderListCreateView(generics.ListCreateAPIView):
         """
         offer_detail_id = request.data.get('offer_detail_id')
         if not offer_detail_id:
-            raise ValidationError({'detail': 'offer_detail_id fehlt.'})
-        return get_object_or_404(OfferDetail, id=offer_detail_id)
+            raise ValidationError({'offer_detail_id': 'Dieses Feld wird benötigt.'})
+
+        try:
+            offer_detail_id = int(offer_detail_id)
+        except (ValueError, TypeError):
+            raise ValidationError({'offer_detail_id': 'Die ID muss eine ganze Zahl sein.'})
+
+        try:
+            return OfferDetail.objects.get(id=offer_detail_id)
+        except OfferDetail.DoesNotExist:
+            raise ValidationError({'offer_detail_id': 'Kein Angebot mit dieser ID gefunden.'})
 
     def _create_order_from_offer(self, user, offer_detail):
         """
